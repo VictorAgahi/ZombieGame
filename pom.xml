@@ -47,6 +47,7 @@
         <module>edition</module>
         <module>zombie</module>
         <module>coureur</module>
+        <module>app</module>
     </modules>
 
     <dependencyManagement>

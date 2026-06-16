@@ -37,14 +37,20 @@ Une fois l'application démarrée, l'interface **Swagger** pour explorer et test
 
 ## Architecture Modulaire et DDD
 
-Le projet est divisé en 4 modules Maven représentant les différents domaines fonctionnels de l'application :
+Le projet est divisé en 5 modules Maven représentant les différents domaines fonctionnels et l'assemblage de l'application :
 
 ```mermaid
 graph TD
-    A["Run Or Die (Parent POM)"] --> B["User Module"]
+    A["Run Or Die (Parent POM)"] --> APP["App Module (Launcher)"]
+    A --> B["User Module"]
     A --> C["Edition Module"]
     A --> D["Zombie Module"]
     A --> E["Coureur Module"]
+    
+    APP -.->|Assemble| B
+    APP -.->|Assemble| C
+    APP -.->|Assemble| D
+    APP -.->|Assemble| E
     
     C -.->|Utilise| B
     D -.->|S'inscrit à| C

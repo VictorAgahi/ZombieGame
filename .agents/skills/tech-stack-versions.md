@@ -9,6 +9,6 @@ Le projet **Run or Die** s'appuie sur une stack technologique précise. L'agent 
   - Spring Data JPA
   - Spring Security
 - **Base de données** : H2 Database (base de données en mémoire pour simplifier le setup).
-- **Build tool** : Maven (Le projet doit être modélisé en 4 couches distinctes via des modules Maven si l'architecture le demande, ou un `pom.xml` global bien structuré).
+- **Build tool** : Maven (Le projet doit être modélisé en 5 couches distinctes via des modules Maven si l'architecture le demande, ou un `pom.xml` global bien structuré).
 
 L'agent ne doit **jamais** proposer des librairies obsolètes ou des versions de Java antérieures.
