@@ -9,5 +9,5 @@ Le projet est le backend d'une plateforme d'organisation de "zombie runs". L'age
 - **Bootstrapping** : L'agent sait que l'application doit intégrer un jeu de données de test en mémoire (H2) au lancement, comme spécifié dans les exigences (comptes prédéfinis `mastermind@epita.fr` et `forrest@epita.fr`).
 
 ## Consignes Techniques
-- Maintenir une séparation en 4 couches (modèles, repositories, services, controllers) via des modules Maven si nécessaire, ou des packages bien définis.
+- Maintenir une architecture Clean Code / DDD stricte dans chaque module, découpée en 3 dossiers principaux : `application` (controllers, dtos, mappers), `domain` (entities, services), et `infrastructure` (repositories, models).
 - Bouchonner (mock via `System.out.println`) les services externes (comme les emails ou la vérification des licences).

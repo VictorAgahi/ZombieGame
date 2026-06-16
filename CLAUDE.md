@@ -25,6 +25,6 @@ L'accent est mis sur la qualité du code et sa maintenabilité. Tu dois refuser 
 - Spring Boot > 3.0 (Web, Data JPA, Security)
 - Maven
 - Base de données H2 (in-memory)
-- Architecture monolithique en 4 couches (modélisée en modules Maven)
+- Architecture modulaire et DDD (Clean Code) structurée en couches : `application`, `domain`, `infrastructure` dans chaque module.
 
 Pour les règles métier complètes, réfère-toi toujours au fichier `CONTEXT.md` situé à la racine.

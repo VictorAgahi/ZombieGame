@@ -8,7 +8,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     
     <groupId>fr.epita.zombie</groupId>
@@ -17,13 +17,31 @@
     <packaging>pom</packaging>
     
     <name>Run or Die</name>
-    <description>Backend application for Zombie Runs</description>
+
+    <developers>
+        <developer>
+            <name>Victor Agahi</name>
+            <email>victor.agahi@epita.fr</email>
+        </developer>
+        <developer>
+            <name>Clément Pasteau</name>
+            <email>clement.pasteau@epita.fr</email>
+        </developer>
+        <developer>
+            <name>Victor Giroud</name>
+            <email>victor.giroud@epita.fr</email>
+        </developer>
+        <developer>
+            <name>Damien Lugagne-Delpon</name>
+            <email>damien.lugagne-delpon@epita.fr</email>
+        </developer>
+    </developers>
 
     <properties>
         <java.version>21</java.version>
+        <springdoc.version>2.5.0</springdoc.version>
     </properties>
 
-    <!-- Déclaration des 4 modules demandés -->
     <modules>
         <module>user</module>
         <module>edition</module>
@@ -31,8 +49,17 @@
         <module>coureur</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <!-- Dépendances globales de base (Spring Boot, JPA, Web, H2) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -46,10 +73,83 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat/>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+                <!-- Plugin pour copier le jar dans le dossier /jar à la racine -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <executions>
+                        <execution>
+                            <id>copy-fat-jar</id>
+                            <phase>install</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <target>
+                                    <mkdir dir="${maven.multiModuleProjectDirectory}/jar" />
+                                    <copy todir="${maven.multiModuleProjectDirectory}/jar" flatten="true">
+                                        <fileset dir="${project.build.directory}">
+                                            <include name="*.jar" />
+                                        </fileset>
+                                    </copy>
+                                </target>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>
