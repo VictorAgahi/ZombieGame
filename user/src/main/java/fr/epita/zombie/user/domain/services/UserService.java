@@ -1,8 +1,87 @@
 package fr.epita.zombie.user.domain.services;
 
+import fr.epita.zombie.user.application.dtos.requests.UserRequest;
+import fr.epita.zombie.user.application.dtos.responses.UserResponse;
+import fr.epita.zombie.user.application.mappers.UserMapper;
+import fr.epita.zombie.user.domain.exceptions.BadCredentialsException;
+import fr.epita.zombie.user.domain.exceptions.UserAlreadyExistsException;
+import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
+import fr.epita.zombie.user.domain.models.UserModel;
+import fr.epita.zombie.user.infrastructure.entities.UserEntity;
+import fr.epita.zombie.user.infrastructure.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-  // TODO: Implement business logic
+  private final EncryptionService encryptionService;
+  private final UserRepository userRepository;
+  private final UserMapper userMapper;
+
+  public UserService(
+      EncryptionService encryptionService, UserRepository userRepository, UserMapper userMapper) {
+    this.encryptionService = encryptionService;
+    this.userRepository = userRepository;
+    this.userMapper = userMapper;
+  }
+
+  public UserResponse authenticate(UserRequest request) {
+    UserModel loginModel = userMapper.toModel(request);
+    UserEntity entity =
+        userRepository
+            .findByEmail(loginModel.getEmail())
+            .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+
+    if (!encryptionService.matches(loginModel.getPassword(), entity.getPassword())) {
+      throw new BadCredentialsException("Invalid email or password");
+    }
+
+    return userMapper.toResponse(userMapper.toModel(entity));
+  }
+
+  public UserResponse register(UserRequest request) {
+    UserModel userModel = userMapper.toModel(request);
+    if (userRepository.findByEmail(userModel.getEmail()).isPresent()) {
+      // We throw a specific exception, but the GlobalExceptionHandler will return a 400
+      // to avoid leaking the existence of an account (anti-enumeration).
+      throw new UserAlreadyExistsException("User already exists");
+    }
+
+    userModel.setPassword(encryptionService.encrypt(userModel.getPassword()));
+    UserEntity entity = userMapper.toEntity(userModel);
+    UserEntity savedEntity = userRepository.save(entity);
+    return userMapper.toResponse(userMapper.toModel(savedEntity));
+  }
+
+  public UserResponse getById(Long id) {
+    UserEntity entity =
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+    return userMapper.toResponse(userMapper.toModel(entity));
+  }
+
+  public UserResponse update(Long id, UserRequest request) {
+    UserModel userModel = userMapper.toModel(request);
+    UserEntity entity =
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+
+    entity.setEmail(userModel.getEmail());
+    entity.setRole(userModel.getRole());
+
+    if (userModel.getPassword() != null && !userModel.getPassword().isBlank()) {
+      entity.setPassword(encryptionService.encrypt(userModel.getPassword()));
+    }
+
+    UserEntity updatedEntity = userRepository.save(entity);
+    return userMapper.toResponse(userMapper.toModel(updatedEntity));
+  }
+
+  public void delete(Long id) {
+    if (!userRepository.existsById(id)) {
+      throw new UserNotFoundException("User not found with id: " + id);
+    }
+    userRepository.deleteById(id);
+  }
 }

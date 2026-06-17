@@ -107,7 +107,7 @@ erDiagram
         Time startTime
         Time endTime
         String location
-        Int maxRunners
+        Int maxCoureurs
         Int maxZombies
     }
     ZOMBIE {
