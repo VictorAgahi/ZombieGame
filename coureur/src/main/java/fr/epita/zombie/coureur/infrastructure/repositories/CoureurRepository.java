@@ -1,6 +1,6 @@
 package fr.epita.zombie.coureur.infrastructure.repositories;
 
-import fr.epita.zombie.coureur.domain.entities.CoureurEntity;
+import fr.epita.zombie.coureur.infrastructure.entities.CoureurEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CoureurRepository extends JpaRepository<CoureurEntity, Long> {
