@@ -1,6 +1,8 @@
 package fr.epita.zombie.user.domain.services;
 
-import fr.epita.zombie.user.application.dtos.requests.UserRequest;
+import fr.epita.zombie.user.application.dtos.requests.UserLoginRequest;
+import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
+import fr.epita.zombie.user.application.dtos.responses.UserLoginResponse;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
 import fr.epita.zombie.user.application.mappers.UserMapper;
 import fr.epita.zombie.user.domain.exceptions.BadCredentialsException;
@@ -9,6 +11,8 @@ import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
 import fr.epita.zombie.user.domain.models.UserModel;
 import fr.epita.zombie.user.infrastructure.entities.UserEntity;
 import fr.epita.zombie.user.infrastructure.repositories.UserRepository;
+import fr.epita.zombie.user.infrastructure.security.JwtUtils;
+import fr.epita.zombie.user.infrastructure.security.UserDetailsConnected;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,15 +20,20 @@ public class UserService {
   private final EncryptionService encryptionService;
   private final UserRepository userRepository;
   private final UserMapper userMapper;
+  private final JwtUtils jwtUtils;
 
   public UserService(
-      EncryptionService encryptionService, UserRepository userRepository, UserMapper userMapper) {
+      EncryptionService encryptionService,
+      UserRepository userRepository,
+      UserMapper userMapper,
+      JwtUtils jwtUtils) {
     this.encryptionService = encryptionService;
     this.userRepository = userRepository;
     this.userMapper = userMapper;
+    this.jwtUtils = jwtUtils;
   }
 
-  public UserResponse authenticate(UserRequest request) {
+  public UserLoginResponse authenticate(UserLoginRequest request) {
     UserModel loginModel = userMapper.toModel(request);
     UserEntity entity =
         userRepository
@@ -35,20 +44,20 @@ public class UserService {
       throw new BadCredentialsException("Invalid email or password");
     }
 
-    return userMapper.toResponse(userMapper.toModel(entity));
+    String token = jwtUtils.generateToken(new UserDetailsConnected(entity));
+    return userMapper.toLoginResponse(token);
   }
 
-  public UserResponse register(UserRequest request) {
+  public UserResponse register(UserRegisterRequest request) {
     UserModel userModel = userMapper.toModel(request);
     if (userRepository.findByEmail(userModel.getEmail()).isPresent()) {
-      // We throw a specific exception, but the GlobalExceptionHandler will return a 400
-      // to avoid leaking the existence of an account (anti-enumeration).
       throw new UserAlreadyExistsException("User already exists");
     }
 
     userModel.setPassword(encryptionService.encrypt(userModel.getPassword()));
     UserEntity entity = userMapper.toEntity(userModel);
     UserEntity savedEntity = userRepository.save(entity);
+
     return userMapper.toResponse(userMapper.toModel(savedEntity));
   }
 
@@ -60,7 +69,7 @@ public class UserService {
     return userMapper.toResponse(userMapper.toModel(entity));
   }
 
-  public UserResponse update(Long id, UserRequest request) {
+  public UserResponse update(Long id, UserRegisterRequest request) {
     UserModel userModel = userMapper.toModel(request);
     UserEntity entity =
         userRepository

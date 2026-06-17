@@ -26,6 +26,36 @@ Pour lancer l'application (une fois compilée) :
 java -jar jar/run-or-die-1.0.0-SNAPSHOT.jar
 ```
 
+## Configuration de Sécurité
+
+L'authentification utilise des jetons JWT (HS256). Pour fonctionner localement, vous devez configurer les variables d'environnement `JWT_SECRET_KEY` et `JWT_EXPIRATION`.
+
+### Setup Rapide
+
+Un script de configuration est fourni pour générer automatiquement une clé sécurisée et créer votre fichier `.env` :
+
+```bash
+# Rendre le script exécutable (si ce n'est pas déjà fait)
+chmod +x setup-env.sh
+
+# Lancer le setup
+./setup-env.sh
+```
+
+Le script va créer un fichier `.env` à la racine du projet contenant :
+- `JWT_SECRET_KEY` : Une clé de 256 bits générée aléatoirement et encodée en Base64.
+- `JWT_EXPIRATION` : La durée de validité du token (24h par défaut).
+
+> **Note** : Le fichier `.env` est ignoré par Git. Ne le commitez jamais.
+
+### Configuration Manuelle
+
+Si vous préférez configurer les variables manuellement (dans votre IDE ou votre terminal) :
+1. Générez une clé : `openssl rand -base64 32`
+2. Définissez les variables :
+   - `JWT_SECRET_KEY=votre_cle_generee`
+   - `JWT_EXPIRATION=86400000`
+
 ## Accès et Données de Test
 
 Le jeu de données initial charge automatiquement deux utilisateurs en mémoire :

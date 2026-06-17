@@ -2,4 +2,4 @@ package fr.epita.zombie.user.application.dtos.responses;
 
 import fr.epita.zombie.user.infrastructure.entities.Role;
 
-public record UserResponse(Long id, String email, String password, Role role) {}
+public record UserResponse(Long id, String email, Role role) {}

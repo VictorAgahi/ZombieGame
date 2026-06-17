@@ -6,13 +6,41 @@ import fr.epita.zombie.user.domain.exceptions.UserAlreadyExistsException;
 import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ErrorResponse> handleValidationExceptions(
+      MethodArgumentNotValidException exception, HttpServletRequest request) {
+
+    String message =
+        exception.getBindingResult().getAllErrors().stream()
+            .map(
+                error -> {
+                  String fieldName = ((FieldError) error).getField();
+                  String errorMessage = error.getDefaultMessage();
+                  return fieldName + ": " + errorMessage;
+                })
+            .collect(Collectors.joining(", "));
+
+    ErrorResponse error =
+        new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),
+            message,
+            request.getRequestURI());
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+  }
 
   @ExceptionHandler(BadCredentialsException.class)
   public ResponseEntity<ErrorResponse> handleBadCredentials(

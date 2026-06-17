@@ -1,6 +1,8 @@
 package fr.epita.zombie.user.application.controllers;
 
-import fr.epita.zombie.user.application.dtos.requests.UserRequest;
+import fr.epita.zombie.user.application.dtos.requests.UserLoginRequest;
+import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
+import fr.epita.zombie.user.application.dtos.responses.UserLoginResponse;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
 import fr.epita.zombie.user.application.mappers.UserMapper;
 import fr.epita.zombie.user.domain.services.UserService;
@@ -38,12 +40,15 @@ public class UserController {
         @ApiResponse(
             responseCode = "200",
             description = "User successfully authenticated",
-            content = @Content(schema = @Schema(implementation = UserResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
+            content = @Content(schema = @Schema(implementation = UserLoginResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content)
       })
   @PostMapping("/login")
-  public ResponseEntity<UserResponse> login(@Valid @RequestBody UserRequest request) {
+  public ResponseEntity<UserLoginResponse> login(@Valid @RequestBody UserLoginRequest request) {
     return ResponseEntity.ok(userService.authenticate(request));
   }
 
@@ -56,14 +61,21 @@ public class UserController {
             responseCode = "201",
             description = "User successfully registered",
             content = @Content(schema = @Schema(implementation = UserResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Registration failed: invalid request"),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Registration failed: invalid request",
+            content = @Content),
         @ApiResponse(
             responseCode = "409",
-            description = "Conflict - User already exists (internal)"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
+            description = "Conflict - User already exists (internal)",
+            content = @Content),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content)
       })
   @PostMapping("/register")
-  public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRequest request) {
+  public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegisterRequest request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(request));
   }
 
@@ -76,7 +88,7 @@ public class UserController {
             responseCode = "200",
             description = "Profile found and returned",
             content = @Content(schema = @Schema(implementation = UserResponse.class))),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       })
   @GetMapping("/me")
   public ResponseEntity<UserResponse> getMe(
@@ -93,13 +105,13 @@ public class UserController {
             responseCode = "200",
             description = "Profile successfully updated",
             content = @Content(schema = @Schema(implementation = UserResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content),
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       })
   @PutMapping("/me")
   public ResponseEntity<UserResponse> updateMe(
       @AuthenticationPrincipal UserDetailsConnected currentUser,
-      @Valid @RequestBody UserRequest request) {
+      @Valid @RequestBody UserRegisterRequest request) {
     return ResponseEntity.ok(userService.update(currentUser.getId(), request));
   }
 
@@ -108,8 +120,11 @@ public class UserController {
       description = "Deletes the account of the currently authenticated user")
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "User successfully deleted"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(
+            responseCode = "204",
+            description = "User successfully deleted",
+            content = @Content),
+        @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       })
   @DeleteMapping("/me")
   public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal UserDetailsConnected currentUser) {
