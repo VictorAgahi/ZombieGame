@@ -41,8 +41,12 @@ public class UserService {
   public UserEntity update(Long id, UserEntity user) {
     UserModel model = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-    model.setEmail(user.getEmail());
-    model.setRole(user.getRole());
+    if (user.getEmail() != null && !user.getEmail().isBlank()) {
+      model.setEmail(user.getEmail());
+    }
+    if (user.getRole() != null) {
+      model.setRole(user.getRole());
+    }
 
     if (user.getPassword() != null && !user.getPassword().isBlank()) {
       model.setPassword(encryptionService.encrypt(user.getPassword()));

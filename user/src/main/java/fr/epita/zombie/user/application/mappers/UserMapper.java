@@ -1,6 +1,7 @@
 package fr.epita.zombie.user.application.mappers;
 
 import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
+import fr.epita.zombie.user.application.dtos.requests.UserUpdateRequest;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
 import fr.epita.zombie.user.domain.entities.UserEntity;
 import fr.epita.zombie.user.infrastructure.models.UserModel;
@@ -11,6 +12,14 @@ public class UserMapper {
 
   // DTO -> Domain (Register)
   public UserEntity toEntity(UserRegisterRequest request) {
+    if (request == null) {
+      return null;
+    }
+    return new UserEntity(null, request.email(), request.password(), request.role());
+  }
+
+  // DTO -> Domain (Update)
+  public UserEntity toEntity(UserUpdateRequest request) {
     if (request == null) {
       return null;
     }

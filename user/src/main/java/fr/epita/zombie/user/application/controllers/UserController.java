@@ -1,6 +1,7 @@
 package fr.epita.zombie.user.application.controllers;
 
 import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
+import fr.epita.zombie.user.application.dtos.requests.UserUpdateRequest;
 import fr.epita.zombie.user.application.dtos.responses.ErrorResponse;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
 import fr.epita.zombie.user.application.mappers.UserMapper;
@@ -120,7 +121,7 @@ public class UserController {
   @PutMapping("/me")
   public ResponseEntity<?> updateMe(
       @AuthenticationPrincipal UserDetailsConnected currentUser,
-      @Valid @RequestBody UserRegisterRequest request,
+      @Valid @RequestBody UserUpdateRequest request,
       HttpServletRequest servletRequest) {
     try {
       UserEntity domainUser = userMapper.toEntity(request);
