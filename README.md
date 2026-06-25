@@ -94,6 +94,11 @@ Chaque module respecte une architecture **Clean Code / DDD** stricte avec les co
 - **`domain`** : `entities` (objets métier) et `services` (logique métier). Cœur isolé des frameworks externes.
 - **`infrastructure`** : `repositories` (accès aux données), `models` (modèles de persistance) et configuration.
 
+### Les "Services" : Domaine vs Infrastructure
+Dans cette architecture, le concept de **Service** se divise en deux rôles distincts :
+1. **Services du Domaine** (`domain/services/`) : Ils contiennent les règles métiers pures (ex: validation des horaires, gestion des conflits). Ils sont **100% agnostiques** (ne dépendent d'aucun framework technique) et utilisent des *Ports* (interfaces) pour interagir avec l'extérieur.
+2. **Services de l'Infrastructure** (`infrastructure/services/`) : Ce sont les *Adapters* (les implémentations techniques des ports). Ils contiennent la "plomberie" (ex: accès base de données, algorithme de hash Bcrypt, appels API REST externes). Cette stricte séparation garantit que la logique métier peut être testée unitairement et ne dépend pas des choix techniques de l'infrastructure.
+
 ```mermaid
 graph TD
     subgraph Application
@@ -120,7 +125,57 @@ graph TD
     S -->|Orchestre| E
 ```
 
-## Modèle de Données (Prévisionnel)
+### Anatomie d'un Module
+
+L'architecture interne de chaque module est rigoureusement standardisée. Voici la structure typique de ses sous-dossiers :
+
+```mermaid
+graph LR
+    Module[nom-du-module/]
+    
+    Module --> App[application/]
+    Module --> Dom[domain/]
+    Module --> Inf[infrastructure/]
+    
+    %% Couche Application
+    App --> AC[controllers/]
+    App --> AD[dtos/]
+    App --> AM[mappers/]
+    
+    %% Couche Domain
+    Dom --> DE[entities/]
+    Dom --> DP[ports/]
+    Dom --> DS[services/]
+    Dom --> DV[valueobjects/]
+    
+    %% Couche Infrastructure
+    Inf --> IM[models/]
+    Inf --> IR[repositories/]
+    Inf --> IS[services/]
+    
+    class Dom,DE,DP,DS,DV domain;
+    class App,AC,AD,AM app;
+    class Inf,IM,IR,IS infra;
+```
+
+**Règles Inflexibles par Couche :**
+
+1. **Le Cœur (Domain)**
+   - **Agnostique** : N'importe **jamais** de classes de l'`infrastructure`, de l'`application` ou de `org.springframework`.
+   - **Immuabilité** : Les entités sont 100% immuables (`private final`, `@Builder(toBuilder = true)` de Lombok).
+   - **Contrats** : Expose des interfaces (Ports) toutes préfixées par un `I` majuscule (ex: `IUserRepository`).
+
+2. **L'Exposition (Application)**
+   - **API Propre** : Centralisation des erreurs via `GlobalExceptionHandler`.
+   - **Documentation** : L'API est systématiquement documentée avec OpenAPI/Swagger (`@Tag`, `@Operation`).
+
+3. **La Plomberie (Infrastructure)**
+   - **Adaptateurs** : Implémente les Ports définis par le domaine.
+   - **Persistance** : Isole la base de données via des modèles JPA.
+
+> **Note Globale** : Le code doit s'expliquer par son nommage. L'utilisation de Javadoc (`/**`) est proscrite.
+
+## Modèle de Données
 
 ```mermaid
 erDiagram

@@ -18,7 +18,7 @@ L'accent est mis sur la qualité du code et sa maintenabilité. Tu dois refuser 
 - **DRY** (Don't Repeat Yourself) : très peu de duplication.
 - **YAGNI** (You Aren't Gonna Need It) : aucun code mort ou sur-ingénierie.
 - Respect strict des bonnes pratiques de conception d'**API REST**.
-- **Pas de tests automatisés** ni de **Javadoc**. Le code doit être suffisamment expressif par lui-même.
+- **Pas de Javadoc**. Le code doit être suffisamment expressif par lui-même.
 
 ## Stack Technique
 - Java 21

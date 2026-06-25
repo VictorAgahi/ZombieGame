@@ -1,24 +1,17 @@
 package fr.epita.zombie.user.domain.services;
 
-import fr.epita.zombie.user.application.mappers.UserMapper;
 import fr.epita.zombie.user.domain.entities.UserEntity;
 import fr.epita.zombie.user.domain.exceptions.UserAlreadyExistsException;
 import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
-import fr.epita.zombie.user.infrastructure.models.UserModel;
-import fr.epita.zombie.user.infrastructure.repositories.UserRepository;
-import org.springframework.stereotype.Service;
+import fr.epita.zombie.user.domain.ports.IUserRepository;
 
-@Service
 public class UserService {
-  private final EncryptionService encryptionService;
-  private final UserRepository userRepository;
-  private final UserMapper userMapper;
+  private final IEncryptionService encryptionService;
+  private final IUserRepository userRepository;
 
-  public UserService(
-      EncryptionService encryptionService, UserRepository userRepository, UserMapper userMapper) {
+  public UserService(IEncryptionService encryptionService, IUserRepository userRepository) {
     this.encryptionService = encryptionService;
     this.userRepository = userRepository;
-    this.userMapper = userMapper;
   }
 
   public UserEntity register(UserEntity user) {
@@ -26,34 +19,32 @@ public class UserService {
       throw new UserAlreadyExistsException("User already exists");
     }
 
-    user.changePassword(encryptionService.encrypt(user.getPassword()));
-    UserModel model = userMapper.toModel(user);
-    UserModel savedModel = userRepository.save(model);
-
-    return userMapper.toEntity(savedModel);
+    var updatedUser =
+        user.toBuilder().password(encryptionService.encrypt(user.getPassword())).build();
+    return userRepository.save(updatedUser);
   }
 
   public UserEntity getById(Long id) {
-    UserModel model = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-    return userMapper.toEntity(model);
+    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
   }
 
   public UserEntity update(Long id, UserEntity user) {
-    UserModel model = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    UserEntity existingUser =
+        userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+    var builder = existingUser.toBuilder();
 
     if (user.getEmail() != null && !user.getEmail().isBlank()) {
-      model.setEmail(user.getEmail());
+      builder.email(user.getEmail());
     }
     if (user.getRole() != null) {
-      model.setRole(user.getRole());
+      builder.role(user.getRole());
     }
-
     if (user.getPassword() != null && !user.getPassword().isBlank()) {
-      model.setPassword(encryptionService.encrypt(user.getPassword()));
+      builder.password(encryptionService.encrypt(user.getPassword()));
     }
 
-    UserModel updatedModel = userRepository.save(model);
-    return userMapper.toEntity(updatedModel);
+    return userRepository.save(builder.build());
   }
 
   public void delete(Long id) {

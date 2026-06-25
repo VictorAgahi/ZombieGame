@@ -1,5 +1,6 @@
 package fr.epita.zombie.user.infrastructure.models;
 
+import fr.epita.zombie.user.domain.valueobjects.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
