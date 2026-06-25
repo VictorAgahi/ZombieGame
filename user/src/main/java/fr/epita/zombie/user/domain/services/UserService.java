@@ -34,18 +34,12 @@ public class UserService {
   }
 
   public UserEntity getById(Long id) {
-    UserModel model =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+    UserModel model = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     return userMapper.toEntity(model);
   }
 
   public UserEntity update(Long id, UserEntity user) {
-    UserModel model =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+    UserModel model = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
     model.setEmail(user.getEmail());
     model.setRole(user.getRole());
@@ -60,7 +54,7 @@ public class UserService {
 
   public void delete(Long id) {
     if (!userRepository.existsById(id)) {
-      throw new UserNotFoundException("User not found with id: " + id);
+      throw new UserNotFoundException(id);
     }
     userRepository.deleteById(id);
   }
