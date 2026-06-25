@@ -4,5 +4,5 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CoureurMapper {
-  // TODO: Implement mapping logic between CoureurEntity, CoureurModel and Dto
+  // TODO: Implement mapping logic between Coureur, CoureurModel and Dto
 }

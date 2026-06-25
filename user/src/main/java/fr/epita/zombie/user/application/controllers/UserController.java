@@ -1,10 +1,12 @@
 package fr.epita.zombie.user.application.controllers;
 
-import fr.epita.zombie.user.application.dtos.requests.UserLoginRequest;
 import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
-import fr.epita.zombie.user.application.dtos.responses.UserLoginResponse;
+import fr.epita.zombie.user.application.dtos.responses.ErrorResponse;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
 import fr.epita.zombie.user.application.mappers.UserMapper;
+import fr.epita.zombie.user.domain.entities.UserEntity;
+import fr.epita.zombie.user.domain.exceptions.UserAlreadyExistsException;
+import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
 import fr.epita.zombie.user.domain.services.UserService;
 import fr.epita.zombie.user.infrastructure.security.UserDetailsConnected;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +15,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,24 +38,6 @@ public class UserController {
     this.userMapper = userMapper;
   }
 
-  @Operation(summary = "User login", description = "Authenticates a user and returns their profile")
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "User successfully authenticated",
-            content = @Content(schema = @Schema(implementation = UserLoginResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content),
-        @ApiResponse(
-            responseCode = "500",
-            description = "Internal server error",
-            content = @Content)
-      })
-  @PostMapping("/login")
-  public ResponseEntity<UserLoginResponse> login(@Valid @RequestBody UserLoginRequest request) {
-    return ResponseEntity.ok(userService.authenticate(request));
-  }
-
   @Operation(
       summary = "Register a new user",
       description = "Creates a new user account in the system")
@@ -66,17 +52,27 @@ public class UserController {
             description = "Registration failed: invalid request",
             content = @Content),
         @ApiResponse(
-            responseCode = "409",
-            description = "Conflict - User already exists (internal)",
-            content = @Content),
-        @ApiResponse(
             responseCode = "500",
             description = "Internal server error",
             content = @Content)
       })
   @PostMapping("/register")
-  public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegisterRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(request));
+  public ResponseEntity<?> register(
+      @Valid @RequestBody UserRegisterRequest request, HttpServletRequest servletRequest) {
+    try {
+      UserEntity domainUser = userMapper.toEntity(request);
+      UserEntity registeredUser = userService.register(domainUser);
+      return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(registeredUser));
+    } catch (UserAlreadyExistsException ex) {
+      ErrorResponse error =
+          new ErrorResponse(
+              LocalDateTime.now(),
+              HttpStatus.BAD_REQUEST.value(),
+              HttpStatus.BAD_REQUEST.getReasonPhrase(),
+              "Registration failed: invalid request",
+              servletRequest.getRequestURI());
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
   }
 
   @Operation(
@@ -91,9 +87,22 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       })
   @GetMapping("/me")
-  public ResponseEntity<UserResponse> getMe(
-      @AuthenticationPrincipal UserDetailsConnected currentUser) {
-    return ResponseEntity.ok(userService.getById(currentUser.getId()));
+  public ResponseEntity<?> getMe(
+      @AuthenticationPrincipal UserDetailsConnected currentUser,
+      HttpServletRequest servletRequest) {
+    try {
+      UserEntity user = userService.getById(currentUser.getId());
+      return ResponseEntity.ok(userMapper.toResponse(user));
+    } catch (UserNotFoundException ex) {
+      ErrorResponse error =
+          new ErrorResponse(
+              LocalDateTime.now(),
+              HttpStatus.NOT_FOUND.value(),
+              HttpStatus.NOT_FOUND.getReasonPhrase(),
+              ex.getMessage(),
+              servletRequest.getRequestURI());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
   }
 
   @Operation(
@@ -109,10 +118,24 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       })
   @PutMapping("/me")
-  public ResponseEntity<UserResponse> updateMe(
+  public ResponseEntity<?> updateMe(
       @AuthenticationPrincipal UserDetailsConnected currentUser,
-      @Valid @RequestBody UserRegisterRequest request) {
-    return ResponseEntity.ok(userService.update(currentUser.getId(), request));
+      @Valid @RequestBody UserRegisterRequest request,
+      HttpServletRequest servletRequest) {
+    try {
+      UserEntity domainUser = userMapper.toEntity(request);
+      UserEntity updatedUser = userService.update(currentUser.getId(), domainUser);
+      return ResponseEntity.ok(userMapper.toResponse(updatedUser));
+    } catch (UserNotFoundException ex) {
+      ErrorResponse error =
+          new ErrorResponse(
+              LocalDateTime.now(),
+              HttpStatus.NOT_FOUND.value(),
+              HttpStatus.NOT_FOUND.getReasonPhrase(),
+              ex.getMessage(),
+              servletRequest.getRequestURI());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
   }
 
   @Operation(
@@ -127,8 +150,21 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       })
   @DeleteMapping("/me")
-  public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal UserDetailsConnected currentUser) {
-    userService.delete(currentUser.getId());
-    return ResponseEntity.noContent().build();
+  public ResponseEntity<?> deleteMe(
+      @AuthenticationPrincipal UserDetailsConnected currentUser,
+      HttpServletRequest servletRequest) {
+    try {
+      userService.delete(currentUser.getId());
+      return ResponseEntity.noContent().build();
+    } catch (UserNotFoundException ex) {
+      ErrorResponse error =
+          new ErrorResponse(
+              LocalDateTime.now(),
+              HttpStatus.NOT_FOUND.value(),
+              HttpStatus.NOT_FOUND.getReasonPhrase(),
+              ex.getMessage(),
+              servletRequest.getRequestURI());
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
   }
 }

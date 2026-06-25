@@ -1,46 +1,33 @@
 package fr.epita.zombie.user.infrastructure.config;
 
 import fr.epita.zombie.user.infrastructure.repositories.UserRepository;
-import fr.epita.zombie.user.infrastructure.security.JwtAuthenticationFilter;
 import fr.epita.zombie.user.infrastructure.security.UserDetailsConnected;
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthFilter;
   private final UserRepository userRepository;
+
+  public SecurityConfig(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
 
   @Bean
   public OpenAPI customOpenAPI() {
-    return new OpenAPI()
-        .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
-        .components(
-            new Components()
-                .addSecuritySchemes(
-                    "Bearer Authentication",
-                    new SecurityScheme()
-                        .type(SecurityScheme.Type.HTTP)
-                        .scheme("bearer")
-                        .bearerFormat("JWT")));
+    return new OpenAPI();
   }
 
   @Bean
@@ -66,13 +53,17 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
-                    .requestMatchers("/api/users/login", "/api/users/register")
+                    .requestMatchers("/api/users/register", "/login", "/register")
                     .permitAll()
+                    .requestMatchers("/api/editions/**")
+                    .hasRole("ORGANIZER")
+                    .requestMatchers("/api/zombies/**")
+                    .hasRole("ZOMBIE")
+                    .requestMatchers("/api/coureurs/**")
+                    .hasRole("RUNNER")
                     .anyRequest()
                     .authenticated())
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        .formLogin(Customizer.withDefaults());
 
     return http.build();
   }
