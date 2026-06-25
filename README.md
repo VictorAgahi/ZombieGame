@@ -94,6 +94,11 @@ Chaque module respecte une architecture **Clean Code / DDD** stricte avec les co
 - **`domain`** : `entities` (objets métier) et `services` (logique métier). Cœur isolé des frameworks externes.
 - **`infrastructure`** : `repositories` (accès aux données), `models` (modèles de persistance) et configuration.
 
+### Les "Services" : Domaine vs Infrastructure
+Dans cette architecture, le concept de **Service** se divise en deux rôles distincts :
+1. **Services du Domaine** (`domain/services/`) : Ils contiennent les règles métiers pures (ex: validation des horaires, gestion des conflits). Ils sont **100% agnostiques** (ne dépendent d'aucun framework technique) et utilisent des *Ports* (interfaces) pour interagir avec l'extérieur.
+2. **Services de l'Infrastructure** (`infrastructure/services/`) : Ce sont les *Adapters* (les implémentations techniques des ports). Ils contiennent la "plomberie" (ex: accès base de données, algorithme de hash Bcrypt, appels API REST externes). Cette stricte séparation garantit que la logique métier peut être testée unitairement et ne dépend pas des choix techniques de l'infrastructure.
+
 ```mermaid
 graph TD
     subgraph Application

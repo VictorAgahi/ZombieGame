@@ -1,4 +1,4 @@
-package fr.epita.zombie.user.infrastructure.models;
+package fr.epita.zombie.user.domain.valueobjects;
 
 public enum Role {
   ORGANIZER,

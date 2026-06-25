@@ -1,11 +1,11 @@
 package fr.epita.zombie.user.infrastructure.services;
 
-import fr.epita.zombie.user.domain.services.EncryptionService;
+import fr.epita.zombie.user.domain.services.IEncryptionService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BcryptService implements EncryptionService {
+public class BcryptService implements IEncryptionService {
 
   private final PasswordEncoder passwordEncoder;
 

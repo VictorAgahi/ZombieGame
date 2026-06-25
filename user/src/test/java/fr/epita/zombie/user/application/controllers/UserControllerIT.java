@@ -19,10 +19,9 @@ import fr.epita.zombie.user.domain.entities.UserEntity;
 import fr.epita.zombie.user.domain.exceptions.UserAlreadyExistsException;
 import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
 import fr.epita.zombie.user.domain.services.UserService;
+import fr.epita.zombie.user.domain.valueobjects.Role;
 import fr.epita.zombie.user.factories.UserRequestFactory;
 import fr.epita.zombie.user.factories.UserTestFactory;
-import fr.epita.zombie.user.infrastructure.models.Role;
-import fr.epita.zombie.user.infrastructure.models.UserModel;
 import fr.epita.zombie.user.infrastructure.security.UserDetailsConnected;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,14 +48,8 @@ class UserControllerIT {
   @MockBean private UserService userService;
 
   private UserDetailsConnected createMockUser() {
-    UserModel model =
-        UserModel.builder()
-            .id(1L)
-            .email("user@test.com")
-            .password("password")
-            .role(Role.RUNNER)
-            .build();
-    return new UserDetailsConnected(model);
+    UserEntity user = new UserEntity(1L, "user@test.com", "password", Role.RUNNER);
+    return new UserDetailsConnected(user);
   }
 
   @BeforeEach
@@ -76,7 +69,7 @@ class UserControllerIT {
   void should_return_201_when_registration_is_successful() throws Exception {
     // Arrange
     UserRegisterRequest request = UserRequestFactory.aValidRegisterRequest();
-    UserEntity registeredUser = UserTestFactory.aValidUser();
+    UserEntity registeredUser = UserTestFactory.aValidUser().build();
     when(userService.register(any(UserEntity.class))).thenReturn(registeredUser);
 
     // Act & Assert
@@ -127,7 +120,7 @@ class UserControllerIT {
   void should_return_200_when_get_me_is_successful() throws Exception {
     // Arrange
     UserDetailsConnected mockUser = createMockUser();
-    UserEntity userEntity = UserTestFactory.aValidUser();
+    UserEntity userEntity = UserTestFactory.aValidUser().build();
     when(userService.getById(mockUser.getId())).thenReturn(userEntity);
 
     // Act & Assert
@@ -156,8 +149,7 @@ class UserControllerIT {
     // Arrange
     UserDetailsConnected mockUser = createMockUser();
     UserUpdateRequest request = UserRequestFactory.aValidUpdateRequest();
-    UserEntity updatedUser = UserTestFactory.aValidUser();
-    updatedUser.updateProfile("updated@test.com", updatedUser.getRole());
+    UserEntity updatedUser = UserTestFactory.aValidUser().withEmail("updated@test.com").build();
     when(userService.update(eq(mockUser.getId()), any(UserEntity.class))).thenReturn(updatedUser);
 
     // Act & Assert

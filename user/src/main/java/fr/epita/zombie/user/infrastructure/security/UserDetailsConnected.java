@@ -1,6 +1,6 @@
 package fr.epita.zombie.user.infrastructure.security;
 
-import fr.epita.zombie.user.infrastructure.models.UserModel;
+import fr.epita.zombie.user.domain.entities.UserEntity;
 import java.util.Collection;
 import java.util.List;
 import lombok.Getter;
@@ -15,7 +15,7 @@ public class UserDetailsConnected implements UserDetails {
   private final String password;
   private final Collection<? extends GrantedAuthority> authorities;
 
-  public UserDetailsConnected(UserModel user) {
+  public UserDetailsConnected(UserEntity user) {
     this.id = user.getId();
     this.email = user.getEmail();
     this.password = user.getPassword();
