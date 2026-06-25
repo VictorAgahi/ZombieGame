@@ -37,9 +37,7 @@ public class SecurityConfig {
                 form.loginProcessingUrl("/api/users/login")
                     .successHandler(
                         (request, response, authentication) -> {
-                          response.setStatus(HttpServletResponse.SC_OK);
-                          response.setContentType("application/json");
-                          response.getWriter().write("{\"message\":\"Login successful\"}");
+                          response.sendRedirect("/swagger-ui.html");
                         })
                     .failureHandler(
                         (request, response, exception) -> {
