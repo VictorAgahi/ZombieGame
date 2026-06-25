@@ -125,7 +125,57 @@ graph TD
     S -->|Orchestre| E
 ```
 
-## Modèle de Données (Prévisionnel)
+### Anatomie d'un Module
+
+L'architecture interne de chaque module est rigoureusement standardisée. Voici la structure typique de ses sous-dossiers :
+
+```mermaid
+graph LR
+    Module[nom-du-module/]
+    
+    Module --> App[application/]
+    Module --> Dom[domain/]
+    Module --> Inf[infrastructure/]
+    
+    %% Couche Application
+    App --> AC[controllers/]
+    App --> AD[dtos/]
+    App --> AM[mappers/]
+    
+    %% Couche Domain
+    Dom --> DE[entities/]
+    Dom --> DP[ports/]
+    Dom --> DS[services/]
+    Dom --> DV[valueobjects/]
+    
+    %% Couche Infrastructure
+    Inf --> IM[models/]
+    Inf --> IR[repositories/]
+    Inf --> IS[services/]
+    
+    class Dom,DE,DP,DS,DV domain;
+    class App,AC,AD,AM app;
+    class Inf,IM,IR,IS infra;
+```
+
+**Règles Inflexibles par Couche :**
+
+1. **Le Cœur (Domain)**
+   - **Agnostique** : N'importe **jamais** de classes de l'`infrastructure`, de l'`application` ou de `org.springframework`.
+   - **Immuabilité** : Les entités sont 100% immuables (`private final`, `@Builder(toBuilder = true)` de Lombok).
+   - **Contrats** : Expose des interfaces (Ports) toutes préfixées par un `I` majuscule (ex: `IUserRepository`).
+
+2. **L'Exposition (Application)**
+   - **API Propre** : Centralisation des erreurs via `GlobalExceptionHandler`.
+   - **Documentation** : L'API est systématiquement documentée avec OpenAPI/Swagger (`@Tag`, `@Operation`).
+
+3. **La Plomberie (Infrastructure)**
+   - **Adaptateurs** : Implémente les Ports définis par le domaine.
+   - **Persistance** : Isole la base de données via des modèles JPA.
+
+> **Note Globale** : Le code doit s'expliquer par son nommage. L'utilisation de Javadoc (`/**`) est proscrite.
+
+## Modèle de Données
 
 ```mermaid
 erDiagram
