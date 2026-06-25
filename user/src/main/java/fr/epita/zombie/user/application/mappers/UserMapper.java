@@ -4,27 +4,27 @@ import fr.epita.zombie.user.application.dtos.requests.UserLoginRequest;
 import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
 import fr.epita.zombie.user.application.dtos.responses.UserLoginResponse;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
-import fr.epita.zombie.user.domain.models.UserModel;
-import fr.epita.zombie.user.infrastructure.entities.UserEntity;
+import fr.epita.zombie.user.domain.entities.UserEntity;
+import fr.epita.zombie.user.infrastructure.models.UserModel;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
 
   // DTO -> Domain (Login)
-  public UserModel toModel(UserLoginRequest request) {
+  public UserEntity toEntity(UserLoginRequest request) {
     if (request == null) {
       return null;
     }
-    return UserModel.builder().email(request.email()).password(request.password()).build();
+    return UserEntity.builder().email(request.email()).password(request.password()).build();
   }
 
   // DTO -> Domain (Register)
-  public UserModel toModel(UserRegisterRequest request) {
+  public UserEntity toEntity(UserRegisterRequest request) {
     if (request == null) {
       return null;
     }
-    return UserModel.builder()
+    return UserEntity.builder()
         .email(request.email())
         .password(request.password())
         .role(request.role())
@@ -32,11 +32,11 @@ public class UserMapper {
   }
 
   // Domain -> Response DTO
-  public UserResponse toResponse(UserModel model) {
-    if (model == null) {
+  public UserResponse toResponse(UserEntity entity) {
+    if (entity == null) {
       return null;
     }
-    return new UserResponse(model.getId(), model.getEmail(), model.getRole());
+    return new UserResponse(entity.getId(), entity.getEmail(), entity.getRole());
   }
 
   // Domain -> Login Response DTO
@@ -44,20 +44,7 @@ public class UserMapper {
     return new UserLoginResponse(token);
   }
 
-  // Domain -> Entity
-  public UserEntity toEntity(UserModel model) {
-    if (model == null) {
-      return null;
-    }
-    return UserEntity.builder()
-        .id(model.getId())
-        .email(model.getEmail())
-        .password(model.getPassword())
-        .role(model.getRole())
-        .build();
-  }
-
-  // Entity -> Domain
+  // Domain -> DB Model
   public UserModel toModel(UserEntity entity) {
     if (entity == null) {
       return null;
@@ -67,6 +54,19 @@ public class UserMapper {
         .email(entity.getEmail())
         .password(entity.getPassword())
         .role(entity.getRole())
+        .build();
+  }
+
+  // DB Model -> Domain
+  public UserEntity toEntity(UserModel model) {
+    if (model == null) {
+      return null;
+    }
+    return UserEntity.builder()
+        .id(model.getId())
+        .email(model.getEmail())
+        .password(model.getPassword())
+        .role(model.getRole())
         .build();
   }
 }

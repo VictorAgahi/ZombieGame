@@ -1,6 +1,6 @@
 package fr.epita.zombie.user.application.dtos.requests;
 
-import fr.epita.zombie.user.infrastructure.entities.Role;
+import fr.epita.zombie.user.infrastructure.models.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

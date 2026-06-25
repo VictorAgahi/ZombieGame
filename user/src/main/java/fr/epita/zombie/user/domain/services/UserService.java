@@ -5,11 +5,11 @@ import fr.epita.zombie.user.application.dtos.requests.UserRegisterRequest;
 import fr.epita.zombie.user.application.dtos.responses.UserLoginResponse;
 import fr.epita.zombie.user.application.dtos.responses.UserResponse;
 import fr.epita.zombie.user.application.mappers.UserMapper;
+import fr.epita.zombie.user.domain.entities.UserEntity;
 import fr.epita.zombie.user.domain.exceptions.BadCredentialsException;
 import fr.epita.zombie.user.domain.exceptions.UserAlreadyExistsException;
 import fr.epita.zombie.user.domain.exceptions.UserNotFoundException;
-import fr.epita.zombie.user.domain.models.UserModel;
-import fr.epita.zombie.user.infrastructure.entities.UserEntity;
+import fr.epita.zombie.user.infrastructure.models.UserModel;
 import fr.epita.zombie.user.infrastructure.repositories.UserRepository;
 import fr.epita.zombie.user.infrastructure.security.JwtUtils;
 import fr.epita.zombie.user.infrastructure.security.UserDetailsConnected;
@@ -34,57 +34,57 @@ public class UserService {
   }
 
   public UserLoginResponse authenticate(UserLoginRequest request) {
-    UserModel loginModel = userMapper.toModel(request);
-    UserEntity entity =
+    UserEntity loginEntity = userMapper.toEntity(request);
+    UserModel model =
         userRepository
-            .findByEmail(loginModel.getEmail())
+            .findByEmail(loginEntity.getEmail())
             .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
-    if (!encryptionService.matches(loginModel.getPassword(), entity.getPassword())) {
+    if (!encryptionService.matches(loginEntity.getPassword(), model.getPassword())) {
       throw new BadCredentialsException("Invalid email or password");
     }
 
-    String token = jwtUtils.generateToken(new UserDetailsConnected(entity));
+    String token = jwtUtils.generateToken(new UserDetailsConnected(model));
     return userMapper.toLoginResponse(token);
   }
 
   public UserResponse register(UserRegisterRequest request) {
-    UserModel userModel = userMapper.toModel(request);
-    if (userRepository.findByEmail(userModel.getEmail()).isPresent()) {
+    UserEntity userEntity = userMapper.toEntity(request);
+    if (userRepository.findByEmail(userEntity.getEmail()).isPresent()) {
       throw new UserAlreadyExistsException("User already exists");
     }
 
-    userModel.setPassword(encryptionService.encrypt(userModel.getPassword()));
-    UserEntity entity = userMapper.toEntity(userModel);
-    UserEntity savedEntity = userRepository.save(entity);
+    userEntity.setPassword(encryptionService.encrypt(userEntity.getPassword()));
+    UserModel model = userMapper.toModel(userEntity);
+    UserModel savedModel = userRepository.save(model);
 
-    return userMapper.toResponse(userMapper.toModel(savedEntity));
+    return userMapper.toResponse(userMapper.toEntity(savedModel));
   }
 
   public UserResponse getById(Long id) {
-    UserEntity entity =
+    UserModel model =
         userRepository
             .findById(id)
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-    return userMapper.toResponse(userMapper.toModel(entity));
+    return userMapper.toResponse(userMapper.toEntity(model));
   }
 
   public UserResponse update(Long id, UserRegisterRequest request) {
-    UserModel userModel = userMapper.toModel(request);
-    UserEntity entity =
+    UserEntity userEntity = userMapper.toEntity(request);
+    UserModel model =
         userRepository
             .findById(id)
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-    entity.setEmail(userModel.getEmail());
-    entity.setRole(userModel.getRole());
+    model.setEmail(userEntity.getEmail());
+    model.setRole(userEntity.getRole());
 
-    if (userModel.getPassword() != null && !userModel.getPassword().isBlank()) {
-      entity.setPassword(encryptionService.encrypt(userModel.getPassword()));
+    if (userEntity.getPassword() != null && !userEntity.getPassword().isBlank()) {
+      model.setPassword(encryptionService.encrypt(userEntity.getPassword()));
     }
 
-    UserEntity updatedEntity = userRepository.save(entity);
-    return userMapper.toResponse(userMapper.toModel(updatedEntity));
+    UserModel updatedModel = userRepository.save(model);
+    return userMapper.toResponse(userMapper.toEntity(updatedModel));
   }
 
   public void delete(Long id) {

@@ -1,6 +1,6 @@
-package fr.epita.zombie.user.domain.models;
+package fr.epita.zombie.user.domain.entities;
 
-import fr.epita.zombie.user.infrastructure.entities.Role;
+import fr.epita.zombie.user.infrastructure.models.Role;
 import lombok.*;
 
 @Getter
@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserModel {
+public class UserEntity {
   private Long id;
   private String email;
   private String password;

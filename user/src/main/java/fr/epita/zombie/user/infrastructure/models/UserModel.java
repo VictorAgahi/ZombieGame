@@ -1,4 +1,4 @@
-package fr.epita.zombie.user.infrastructure.entities;
+package fr.epita.zombie.user.infrastructure.models;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserEntity {
+public class UserModel {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

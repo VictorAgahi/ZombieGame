@@ -1,4 +1,4 @@
-package fr.epita.zombie.zombie.infrastructure.entities;
+package fr.epita.zombie.coureur.infrastructure.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,11 +6,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class ZombieEntity {
+public class CoureurModel {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  // TODO: Define specific JPA fields (startTime, endTime)
+  // TODO: Define specific JPA fields (licenseStatus)
 }
