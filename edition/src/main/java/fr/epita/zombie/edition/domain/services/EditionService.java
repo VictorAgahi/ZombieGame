@@ -24,16 +24,17 @@ public class EditionService {
   public EditionEntity create(EditionEntity edition) {
     validateEdition(edition);
 
-    EditionEntity toSave = EditionEntity.builder()
-        .name(edition.getName())
-        .date(edition.getDate())
-        .startTime(edition.getStartTime())
-        .endTime(edition.getEndTime())
-        .location(edition.getLocation())
-        .maxCoureurs(edition.getMaxCoureurs())
-        .maxZombies(edition.getMaxZombies())
-        .status(EditionStatus.CREATED)
-        .build();
+    EditionEntity toSave =
+        EditionEntity.builder()
+            .name(edition.getName())
+            .date(edition.getDate())
+            .startTime(edition.getStartTime())
+            .endTime(edition.getEndTime())
+            .location(edition.getLocation())
+            .maxCoureurs(edition.getMaxCoureurs())
+            .maxZombies(edition.getMaxZombies())
+            .status(EditionStatus.CREATED)
+            .build();
 
     return editionRepository.save(toSave);
   }
