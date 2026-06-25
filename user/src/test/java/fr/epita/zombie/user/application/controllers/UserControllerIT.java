@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,6 +24,8 @@ import fr.epita.zombie.user.factories.UserTestFactory;
 import fr.epita.zombie.user.infrastructure.models.Role;
 import fr.epita.zombie.user.infrastructure.models.UserModel;
 import fr.epita.zombie.user.infrastructure.security.UserDetailsConnected;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,6 +33,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(UserController.class)
@@ -54,6 +57,19 @@ class UserControllerIT {
             .role(Role.RUNNER)
             .build();
     return new UserDetailsConnected(model);
+  }
+
+  @BeforeEach
+  void setUp() {
+    UserDetailsConnected user = createMockUser();
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
   }
 
   @Test
@@ -116,7 +132,7 @@ class UserControllerIT {
 
     // Act & Assert
     mockMvc
-        .perform(get("/api/users/me").with(user(mockUser)))
+        .perform(get("/api/users/me"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(userEntity.getId()))
         .andExpect(jsonPath("$.email").value(userEntity.getEmail()));
@@ -130,7 +146,7 @@ class UserControllerIT {
 
     // Act & Assert
     mockMvc
-        .perform(get("/api/users/me").with(user(mockUser)))
+        .perform(get("/api/users/me"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("Not found"));
   }
@@ -148,7 +164,6 @@ class UserControllerIT {
     mockMvc
         .perform(
             put("/api/users/me")
-                .with(user(mockUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
@@ -161,7 +176,7 @@ class UserControllerIT {
     UserDetailsConnected mockUser = createMockUser();
 
     // Act & Assert
-    mockMvc.perform(delete("/api/users/me").with(user(mockUser))).andExpect(status().isNoContent());
+    mockMvc.perform(delete("/api/users/me")).andExpect(status().isNoContent());
 
     verify(userService).delete(mockUser.getId());
   }
