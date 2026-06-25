@@ -7,3 +7,6 @@ target/
 .DS_Store
 .mvn/
 jar/
+*.mv.db
+*.trace.db
+.env

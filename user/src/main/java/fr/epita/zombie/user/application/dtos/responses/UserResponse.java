@@ -1,5 +1,5 @@
 package fr.epita.zombie.user.application.dtos.responses;
 
-public record UserResponse() {
-  // TODO: Define fields for outgoing API responses
-}
+import fr.epita.zombie.user.infrastructure.models.Role;
+
+public record UserResponse(Long id, String email, Role role) {}

@@ -1,16 +1,28 @@
 package fr.epita.zombie.user.domain.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import fr.epita.zombie.user.infrastructure.models.Role;
+import lombok.Getter;
 
-@Entity
+@Getter
 public class UserEntity {
+  private final Long id;
+  private String email;
+  private String password;
+  private Role role;
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  public UserEntity(Long id, String email, String password, Role role) {
+    this.id = id;
+    this.email = email;
+    this.password = password;
+    this.role = role;
+  }
 
-  // TODO: Define specific JPA fields (email, password, role)
+  public void changePassword(String newPassword) {
+    this.password = newPassword;
+  }
+
+  public void updateProfile(String email, Role role) {
+    this.email = email;
+    this.role = role;
+  }
 }
