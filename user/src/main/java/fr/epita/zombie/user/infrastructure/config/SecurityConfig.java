@@ -1,8 +1,8 @@
 package fr.epita.zombie.user.infrastructure.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,7 +21,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
-                    .requestMatchers("/api/users/register", "/login", "/register")
+                    .requestMatchers(
+                        "/api/users/register", "/api/users/login", "/login", "/register")
                     .permitAll()
                     .requestMatchers("/api/editions/**")
                     .hasRole("ORGANIZER")
@@ -31,7 +32,21 @@ public class SecurityConfig {
                     .hasRole("RUNNER")
                     .anyRequest()
                     .authenticated())
-        .formLogin(Customizer.withDefaults());
+        .formLogin(
+            form ->
+                form.loginProcessingUrl("/api/users/login")
+                    .successHandler(
+                        (request, response, authentication) -> {
+                          response.setStatus(HttpServletResponse.SC_OK);
+                          response.setContentType("application/json");
+                          response.getWriter().write("{\"message\":\"Login successful\"}");
+                        })
+                    .failureHandler(
+                        (request, response, exception) -> {
+                          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                          response.setContentType("application/json");
+                          response.getWriter().write("{\"error\":\"Invalid email or password\"}");
+                        }));
 
     return http.build();
   }
